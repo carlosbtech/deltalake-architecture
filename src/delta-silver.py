@@ -14,47 +14,63 @@ if __name__ == '__main__':
    
     get_credit_card_data = "/Users/carlosbarbosa/Desktop/work/deltalake-poc/delta/bronze/credit_card/"
 
-    df = spark.read \
-    .format("delta").load(get_credit_card_data)
-
-    df.createOrReplaceTempView("vw_credit_card")
-
     olderDeltaTableDF = spark.read \
     .format("delta") \
     .option("versionAsOf", 0).load(get_credit_card_data)  #Time travel
 
     olderDeltaTableDF.createOrReplaceTempView("src_vw_credit_card")
 
-    # Show duplicate rows
+
+    newDeltaTableDF = spark.read \
+    .format("delta") \
+    .option("versionAsOf", 1).load(get_credit_card_data)
+
+    newDeltaTableDF.createOrReplaceTempView("tgt_vw_credit_card")
+
+    newDeltaTableDF3 = spark.read \
+    .format("delta") \
+    .option("versionAsOf", 3).load(get_credit_card_data)
+
+    newDeltaTableDF3.createOrReplaceTempView("df3")
+
+    spark.sql("SELECT count(*) as qtd_rows_frame_version_0 from df3").show()
+
     spark.sql(
         """
-        SELECT user_id, id, count(*)
-        FROM vw_credit_card
+        SELECT user_id, id, count(*) as qtd_rows
+        FROM df3
         GROUP BY user_id, id
         HAVING COUNT(*) > 1
         """
     ).show()
 
+    newDeltaTableDF.show()
+
+    # Show duplicate rows
     spark.sql(
         """
-        SELECT user_id, id, count(*)
+        SELECT user_id, id, count(*) as qtd_rows
         FROM src_vw_credit_card
         GROUP BY user_id, id
         HAVING COUNT(*) > 1
         """
     ).show()
 
-    # spark.sql("""
-    #           MERGE INTO vw_credit_card vw_credit_card
-    #           USING src_vw_credit_card
-    #           ON src_vw_credit_card.user_id = vw_credit_card.user_id
-    #           WHEN MATCHED AND vw_credit_card.row_flag = 'U'
-    #           THEN
-    #           UPDATE SET *
-    #           WHEN MATCHED AND vw_credit_card.row_flag = 'D'
-    #           THEN DELETE
-    #           WHEN NOT MATCHED and vw_credit_card.row_flag = 'I'
-    #           THEN INSERT *
-    #           """).show()
+    spark.sql("SELECT count(*) as qtd_rows_frame_version_0 from src_vw_credit_card").show()
 
+    olderDeltaTableDF.show()
+    
+    spark.sql(
+        """
+        SELECT user_id, id, count(*) as qtd_rows
+        FROM tgt_vw_credit_card
+        GROUP BY user_id, id
+        HAVING COUNT(*) > 1
+        """
+    ).show()
+
+    spark.sql("SELECT count(*) as qtd_rows_frame_version_1 from tgt_vw_credit_card").show()
+
+    newDeltaTableDF.show()
+    
     spark.stop()

@@ -23,8 +23,9 @@ if __name__ == '__main__':
     )
 
     df.createOrReplaceTempView("vw_credit_card")
-
-    df = spark.sql("select * from vw_credit_card where credit_card_type = 'mastercard'")
+    
+    #spark.sql("select distinct credit_card_type from vw_credit_card").show()
+    df = spark.sql("select * from vw_credit_card where credit_card_type = 'american_express'")
     
     df.printSchema()
     df.show()
@@ -36,3 +37,5 @@ if __name__ == '__main__':
         .mode(write_delta_mode) \
         .format("delta") \
         .save(delta_processing_store_zone + "/credit_card/")
+
+    spark.stop()
