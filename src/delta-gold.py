@@ -57,18 +57,22 @@ if __name__ == '__main__':
             SELECT
             full_name,
             email_user,
-                CASE 
-                    WHEN payment_method is null then 'Payment not made'
-                    ELSE payment_method
-                END as payment_method,
-                CASE 
-                    WHEN status is null then 'N/D'
+            floor(datediff(now(),date_of_birth)/365.25) as age,
+            CASE 
+                WHEN floor(datediff(now(),date_of_birth)/365.25) <= 21 THEN 'young' 
+                WHEN floor(datediff(now(),date_of_birth)/365.25) <= 51 THEN 'adult'
+                ELSE 'elder' end as age_category,
+            CASE 
+                WHEN payment_method is null then 'Payment not made'
+                ELSE payment_method
+            END as payment_method,
+            CASE 
+                WHEN status is null then 'N/D'
                 ELSE status
-                END as status
+            END as status
             FROM
                 vw_user_payment
             WHERE status IN ("Blocked", "Pending")
-            GROUP BY 1,2,3,4
             """).show()
 
     spark.stop()
