@@ -1,76 +1,83 @@
-import os
 import pyspark
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import DataFrame
 
 if __name__ == '__main__':
 
-    spark = pyspark.sql.SparkSession.builder.appName("Pyspark - Deltalake") \
-    .config("spark.jars.packages", "io.delta:delta-core_2.12:0.8.0") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+    spark = pyspark.sql.SparkSession.builder.appName("Pyspark - Deltalake")\
+    .config("spark.jars.packages", "io.delta:delta-core_2.12:0.8.0")\
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")\
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")\
     .getOrCreate()
 
-    #spark.sparkContext.setLogLevel("INFO")
+    spark.sparkContext.setLogLevel("INFO")
    
-    get_credit_card_data = "/Users/carlosbarbosa/Desktop/work/deltalake-poc/delta/bronze/credit_card/"
+    def read_data(path: str, format: str) -> DataFrame:
+        """[Read data on local path]
 
-    olderDeltaTableDF = spark.read \
-    .format("delta") \
-    .option("versionAsOf", 0).load(get_credit_card_data)  #Time travel
+        Args:
+            path (str): [data location path]
 
-    olderDeltaTableDF.createOrReplaceTempView("src_vw_credit_card")
+        Returns:
+            DataFrame: [Dataframe with data]
+        """        
+        df = spark.read.format(format)\
+            .option("inferSchema", "true")\
+            .option("header", "true")\
+            .load(path)
 
+        return df
 
-    newDeltaTableDF = spark.read \
-    .format("delta") \
-    .option("versionAsOf", 1).load(get_credit_card_data)
+    def write_data(df: DataFrame, path: str, write_delta_mode: str) -> str:
+        """[Write data on format delta]
 
-    newDeltaTableDF.createOrReplaceTempView("tgt_vw_credit_card")
+        Args:
+            df (DataFrame): [Dataframe with data]
+            path (str): [data location path]
+            write_delta_mode (str): [append, overwrite]
 
-    newDeltaTableDF3 = spark.read \
-    .format("delta") \
-    .option("versionAsOf", 3).load(get_credit_card_data)
+        Returns:
+            str: [Message after write]
+        """        
+        df.write.mode(write_delta_mode)\
+        .format("delta")\
+        .save(path)
 
-    newDeltaTableDF3.createOrReplaceTempView("df3")
+        return "Data saved successfully"
 
-    spark.sql("SELECT count(*) as qtd_rows_frame_version_0 from df3").show()
+    # Array of tables
+    table_names = ["vehicle", "subscription", "movies" , "user"]
 
-    spark.sql(
-        """
-        SELECT user_id, id, count(*) as qtd_rows
-        FROM df3
-        GROUP BY user_id, id
-        HAVING COUNT(*) > 1
-        """
-    ).show()
+    for table_name in table_names:
+        data = f"/Users/carlosbarbosa/Desktop/work/challenge-ows/delta/bronze/{table_name}"
+        df = read_data(data, "delta")
+        df.createOrReplaceTempView(table_name)
 
-    newDeltaTableDF.show()
+    df = spark.sql("""
+            SELECT
+                CONCAT(vu.first_name, ' ' ,vu.last_name)  as full_name,
+                vu.email                                  as email_user,
+                CASE 
+                    WHEN vu.gender is null THEN 'N/D' 
+                    ELSE vu.gender
+                END                                       as gender_user,
+                vu.username,
+                vu.date_of_birth,
+                vv.car_type,
+                vv.color,
+                vs.payment_method,
+                vs.status,
+                vv.dt_current_timestamp
+            FROM
+                user                as vu
+            INNER JOIN
+                vehicle             as vv
+            ON  vu.user_id = vv.user_id
+            LEFT JOIN 
+                subscription as vs
+            ON  vu.user_id = vs.user_id
+            """)
+    delta_processing_store_zone = f"/Users/carlosbarbosa/Desktop/work/challenge-ows/delta/silver/dataset_user_payments/"
+    write_data(df, delta_processing_store_zone, "append")
 
-    # Show duplicate rows
-    spark.sql(
-        """
-        SELECT user_id, id, count(*) as qtd_rows
-        FROM src_vw_credit_card
-        GROUP BY user_id, id
-        HAVING COUNT(*) > 1
-        """
-    ).show()
-
-    spark.sql("SELECT count(*) as qtd_rows_frame_version_0 from src_vw_credit_card").show()
-
-    olderDeltaTableDF.show()
-    
-    spark.sql(
-        """
-        SELECT user_id, id, count(*) as qtd_rows
-        FROM tgt_vw_credit_card
-        GROUP BY user_id, id
-        HAVING COUNT(*) > 1
-        """
-    ).show()
-
-    spark.sql("SELECT count(*) as qtd_rows_frame_version_1 from tgt_vw_credit_card").show()
-
-    newDeltaTableDF.show()
-    
     spark.stop()

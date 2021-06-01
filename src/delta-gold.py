@@ -10,8 +10,10 @@ if __name__ == '__main__':
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")\
     .getOrCreate()
 
-    spark.sparkContext.setLogLevel("INFO")
-   
+    #spark.sparkContext.setLogLevel("INFO")
+    
+    get_dataset = "/Users/carlosbarbosa/Desktop/work/challenge-ows/delta/silver/dataset_user_payments"
+
     def read_data(path: str, format: str) -> DataFrame:
         """[Read data on local path]
 
@@ -24,6 +26,7 @@ if __name__ == '__main__':
         df = spark.read.format(format)\
             .option("inferSchema", "true")\
             .option("header", "true")\
+            .option("versionAsOf", "0")\
             .load(path)
 
         return df
@@ -45,17 +48,27 @@ if __name__ == '__main__':
 
         return "Data saved successfully"
 
-    # Array of tables
-    table_names = ["vehicle", "subscription", "movies" , "user"]
-    
-    for table_name in table_names:
-        data = f"/Users/carlosbarbosa/Desktop/work/de-apache-spark/files/landing-zone/{table_name}/*.json"
-        
-        df = read_data(data, "json")
-        print(f"Schema of the {table_name} is: \n")
-        df.printSchema()
+    # Read data of vehicle join with subscription
+    df_user_payment = read_data(get_dataset, "delta")
+    df_user_payment.printSchema()
+    df_user_payment.createOrReplaceTempView("vw_user_payment")
 
-        delta_processing_store_zone = f"/Users/carlosbarbosa/Desktop/work/challenge-ows/delta/bronze/{table_name}/"
-        write_data(df, delta_processing_store_zone, "append")
+    spark.sql("""
+            SELECT
+            full_name,
+            email_user,
+                CASE 
+                    WHEN payment_method is null then 'Payment not made'
+                    ELSE payment_method
+                END as payment_method,
+                CASE 
+                    WHEN status is null then 'N/D'
+                ELSE status
+                END as status
+            FROM
+                vw_user_payment
+            WHERE status IN ("Blocked", "Pending")
+            GROUP BY 1,2,3,4
+            """).show()
 
     spark.stop()
