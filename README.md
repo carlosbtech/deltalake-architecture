@@ -77,7 +77,7 @@ pyspark < src/delta-gold.py
 ### Results on delta/gold
 ![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.39.27.png)
 
-![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.40.00.png)
+![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.58.01.png)
 
 
 ## ⛏️ Built Using <a name = "built_using"></a>
