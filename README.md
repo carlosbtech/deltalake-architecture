@@ -67,21 +67,23 @@ pyspark < src/delta-silver.py
 ![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.33.40.png)
 
 ## delta-gold.py
-the spark consumer-zone job partitions the data by genre in order to seek better performance for the business analytical layer, metrics are also generated from how many male and female users are on the platform
+The pyspakr script - [delta-gold.py] has the responsibility of enriching the data, in this process it is where we treat the data and refine it to the business area or who will consume the data, in this script I left the example of how to use the time travel using parameter passed in the function that we declared .option("versionAsOf", "0"), below are images after ingestion
 ## 🔧 Running the tests
 
 ```
 pyspark < src/delta-gold.py
 ```
 
-### Results of consumer-zone
-![img](https://github.com/carlosbpy/pyspark-3.1.1-pgsql/blob/main/docs/consumer-zone.png)
+### Results on delta/gold
+![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.39.27.png)
+
+![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.40.00.png)
 
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
 - [Pyspark](https://spark.apache.org/docs/latest/api/python/index.html) - 3.1.1
-- [Postgres](https://hub.docker.com/_/postgres) - Database
+- [Deltalake](https://docs.delta.io/latest/quick-start.html) 
 
 ## ✍️ Authors <a name = "authors"></a>
 
