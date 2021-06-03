@@ -53,7 +53,7 @@ if __name__ == '__main__':
     df_user_payment.printSchema()
     df_user_payment.createOrReplaceTempView("vw_user_payment")
 
-    spark.sql("""
+    dataset = spark.sql("""
             SELECT
             full_name,
             email_user,
@@ -73,6 +73,9 @@ if __name__ == '__main__':
             FROM
                 vw_user_payment
             WHERE status IN ("Blocked", "Pending")
-            """).show()
+            """)
+    delta_gold_store_zone = f"/Users/carlosbarbosa/Desktop/work/challenge-ows/delta/gold/dataset_user_payments_gold/"
+    write_data(dataset, delta_gold_store_zone, "overwrite")
+    dataset.show()
 
     spark.stop()
