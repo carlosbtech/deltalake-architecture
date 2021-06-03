@@ -44,6 +44,8 @@ if __name__ == '__main__':
         """        
         df.write.mode(write_delta_mode)\
         .format("delta")\
+        .partitionBy('status')\
+        .option("overwriteSchema", "true")\
         .save(path)
 
         return "Data saved successfully"
