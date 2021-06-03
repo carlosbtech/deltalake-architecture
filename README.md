@@ -48,7 +48,7 @@ pyspark < src/delta-bronze.py
 
 ### Results of delta-bronze-<table_name>
 
-![img](https://github.com/carlosbpy/py2spark-3.1.1-pgsql/blob/main/docs/raw-zone.png)
+![img](https://github.com/carlosbpy/deltalake-architecture/blob/main/docs/img/Screen%20Shot%202021-06-03%20at%2013.11.31.png)
 
 ## processing-zone.py
 the spark job processing-zone.py reads the data incrementally from the raw-zone and writes to the processing-zone to avoid complete processing of the data
