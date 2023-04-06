@@ -1,2 +1,11 @@
-*delta
-*.idea
+# Env
+.env.local
+venv/
+
+# Python
+__pycache__
+
+# Data Directory
+/datalake/bronze/
+/datalake/silver/
+/datalake/gold/
