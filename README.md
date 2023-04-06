@@ -1,8 +1,4 @@
 <p align="center">
-POC (Proof of Concept) Delta Lake
-</p>
-
-<p align="center">
   <a href="" rel="noopener">
  <img width=500px height=100px src="https://docs.delta.io/latest/_static/delta-lake-logo.png" alt="Project logo"></a>
 </p>
