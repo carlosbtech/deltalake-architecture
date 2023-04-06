@@ -1,2 +1,7 @@
-*delta
-*.idea
+# Env
+.env.local
+
+# Data Directory
+/datalake/bronze/
+/datalake/silver/
+/datalake/gold/
