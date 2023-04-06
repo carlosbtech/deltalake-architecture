@@ -1,5 +1,6 @@
 # Env
 .env.local
+venv/
 
 # Data Directory
 /datalake/bronze/
