@@ -4,7 +4,7 @@ from aux.query import SILVER_QUERY
 def data_process_bronze_to_silver():
     spark = aux.create_spark_session('silver')
 
-    tables = ['vehicle', 'subscription', 'movies' , 'user']
+    tables = ['vehicle', 'subscription', 'movies' , 'user', 'payments']
 
     for table in tables:
         data_path = f'datalake/bronze/{table}_bronze'
